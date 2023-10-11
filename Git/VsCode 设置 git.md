@@ -21,5 +21,5 @@
         ![Alt text](images/vscode/image-5.png)
     - \+ 号 = git add  
     - 消息框为 commit 信息，√ 号 = git commit '消息框信息'
-    - 同步更改为 git push 
+    - 同步更改为拉取和同步
         ![Alt text](images/vscode/image-6.png)
