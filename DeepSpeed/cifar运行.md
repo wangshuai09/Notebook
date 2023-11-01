@@ -1,4 +1,11 @@
-# cifar 运行
+- [cifar 运行](#cifar-运行)
+    - [启动镜像](#启动镜像)
+    - [下载 DeepSpeedExamples](#下载-deepspeedexamples)
+    - [下载 cifar10 数据并解压](#下载-cifar10-数据并解压)
+    - [修改运行脚本](#修改运行脚本)
+    - [运行脚本](#运行脚本)
+
+## cifar 运行
 
 #### 启动镜像
 ```shell
@@ -12,7 +19,7 @@ git clone https://github.com/microsoft/DeepSpeedExamples.git
 cd DeepSpeedExamples/training/cifar
 ```
 
-#### 下载cifar10数据并解压
+#### 下载 cifar10 数据并解压
 
 ```shell
 https://www.cs.toronto.edu/~kriz/cifar-10-python.tar.gz
@@ -70,7 +77,7 @@ https://www.cs.toronto.edu/~kriz/cifar-10-python.tar.gz
         optimizer_wrapper = self._do_optimizer_sanity_check(basic_optimizer)
     File "/root/miniconda3/envs/torch_npu_py39/lib/python3.9/site-packages/deepspeed/runtime/engine.py", line 1145, in _do_optimizer_sanity_check
         assert (
-    AssertionError: You are using an untested ZeRO Optimizer. Please add <"zero_allow_untested_optimizer": true> in the configuration file to use it.
+    AssertionError: You are using an untested ZeRO Optimizer. Please add "zero_allow_untested_optimizer": true> in the configuration file to use it.
     ```
 
 2. 加载本地数据
@@ -276,36 +283,3 @@ Accuracy of horse : 69 %
 Accuracy of  ship : 70 %
 Accuracy of truck : 63 %
 ```
-
-
-```
-Traceback (most recent call last):
-  File "/home/wangshuai/downloads/DeepSpeedExamples/training/cifar/cifar10_deepspeed.py", line 317, in <module>
-    model_engine, optimizer, trainloader, __ = deepspeed.initialize(
-  File "/root/miniconda3/envs/torch_npu_py39/lib/python3.9/site-packages/deepspeed/__init__.py", line 171, in initialize
-    engine = DeepSpeedEngine(args=args,
-  File "/root/miniconda3/envs/torch_npu_py39/lib/python3.9/site-packages/deepspeed/runtime/engine.py", line 304, in __init__
-    self._configure_optimizer(optimizer, model_parameters)
-  File "/root/miniconda3/envs/torch_npu_py39/lib/python3.9/site-packages/deepspeed/runtime/engine.py", line 1212, in _configure_optimizer
-    self.optimizer = self._configure_zero_optimizer(basic_optimizer)
-  File "/root/miniconda3/envs/torch_npu_py39/lib/python3.9/site-packages/deepspeed/runtime/engine.py", line 1473, in _configure_zero_optimizer
-    optimizer = DeepSpeedZeroOptimizer(
-  File "/root/miniconda3/envs/torch_npu_py39/lib/python3.9/site-packages/deepspeed/runtime/zero/stage_1_and_2.py", line 355, in __init__
-    self._update_model_bit16_weights(i)
-  File "/root/miniconda3/envs/torch_npu_py39/lib/python3.9/site-packages/deepspeed/runtime/zero/stage_1_and_2.py", line 590, in _update_model_bit16_weights
-  File "/root/miniconda3/envs/torch_npu_py39/lib/python3.9/site-packages/torch/_utils.py", line 534, in _unflatten_dense_tensors
-    return torch._C._nn.unflatten_dense_tensors(flat, tensors)
-NotImplementedError: Could not run 'npu::npu_format_cast' with arguments from the 'CPU' backend. This could be because the operator doesn't exist for this backend, or was omitted during the selective/custom build process (if using custom build). If you are a Facebook employee using PyTorch on mobile, please visit https://fburl.com/ptmfixes for possible resolutions. 'npu::npu_format_cast' is only available for these backends: [PrivateUse1, SparsePrivateUse1, BackendSelect, Python, FuncTorchDynamicLayerBackMode, Functionalize, Named, Conjugate, Negative, ZeroTensor, ADInplaceOrView, AutogradOther, AutogradCPU, AutogradCUDA, AutogradXLA, AutogradMPS, AutogradXPU, AutogradHPU, AutogradLazy, AutogradPrivateUse1, AutogradMeta, Tracer, AutocastCPU, AutocastCUDA, AutocastPrivateUse1, FuncTorchBatched, FuncTorchVmapMode, Batched, VmapMode, FuncTorchGradWrapper, PythonTLSSnapshot, FuncTorchDynamicLayerFrontMode, PreDispatch, PythonDispatcher].
-
-https://gitee.com/ascend/pytorch/pulls/6484
-
-查一下flatten相应的实现，第二个参数只关注shape，调用的是 `from torch._utils import _flatten_dense_tensors, _unflatten_dense_tensors`
-```
-
-```
-学习 pytest
-```
-
-'''
-AssertionError: You are using an untested ZeRO Optimizer. Please add <"zero_allow_untested_optimizer": true> in the configuration file to use it.
-'''
