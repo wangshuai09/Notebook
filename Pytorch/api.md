@@ -23,3 +23,11 @@ torch.Size([2, 3, 4, 4])
 torch.Size([192])
 
 ```
+
+# torch::from_blob
+
+# torch.outer 
+
+# torch.repeat_interleave()
+
+# torch.cat 

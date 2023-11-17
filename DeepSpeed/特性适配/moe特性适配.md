@@ -81,7 +81,7 @@ Traceback (most recent call last):
     RuntimeError: isDifferentiableType(variable.scalar_type()) INTERNAL ASSERT FAILED at "/opt/_internal/cpython-3.9.17/lib/python3.9/site-packages/torch/include/torch/csrc/autograd/functions/utils.h":75, please report a bug to PyTorch. 
 ```
 
-解决方法：bool类型不能有梯度，已反馈定位,临时规避方案为 `with torch.no_grad():`
+解决方法：bool类型不能有梯度，已反馈定位,临时规避方案为 `with torch.no_grad():`,  [最终解决方案](https://gitee.com/ascend/op-plugin/pulls/884)
 
 -------
 
