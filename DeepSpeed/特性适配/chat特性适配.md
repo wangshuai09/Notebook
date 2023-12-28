@@ -10,10 +10,10 @@
   - [读取本地模型及数据](#读取本地模型及数据-1)
   - [训练日志](#训练日志-1)
   - [评测结果](#评测结果-1)
-  - [Step3 - RLHF 适配](#step3---rlhf-适配)
-    - [测试脚本](#测试脚本-2)
-    - [读取本地数据](#读取本地数据)
-    - [问题](#问题)
+- [Step3 - RLHF 适配](#step3---rlhf-适配)
+  - [测试脚本](#测试脚本-2)
+  - [读取本地数据](#读取本地数据)
+  - [问题](#问题)
 
 ## 启动脚本
 docker run --network host --name ws-deepspeed-chat --device /dev/davinci1 --device /dev/davinci2 --device /dev/davinci_manager --device /dev/devmm_svm --device /dev/hisi_hdc -v /usr/local/dcmi:/usr/local/dcmi -v /usr/local/bin/npu-smi:/usr/local/bin/npu-smi -v /usr/local/Ascend/driver/lib64/:/usr/local/Ascend/driver/lib64/ -v /usr/local/Ascend/driver/version.info:/usr/local/Ascend/driver/version.info -v /data/disk3/wangshuai:/home/wangshuai -itd ubuntu-20.04-torch-ws:latest bash
@@ -408,9 +408,9 @@ good_ans score:  -1.3827465772628784
 bad_ans score:  -4.656052589416504
 ```
 
-### Step3 - RLHF 适配
+## Step3 - RLHF 适配
 
-#### 测试脚本
+### 测试脚本
 
 ```shell
 cd /home/wangshuai/downloads/DeepSpeedExamples/applications/DeepSpeed-Chat/training/step3_rlhf_finetuning
@@ -418,7 +418,7 @@ cd /home/wangshuai/downloads/DeepSpeedExamples/applications/DeepSpeed-Chat/train
 bash training_scripts/opt/single_gpu/run_1.3b.sh ../step1_supervised_finetuning/output/ ../step2_reward_model_finetuning/output/
 ```
 
-#### 读取本地数据
+### 读取本地数据
 ```diff
 diff --git a/applications/DeepSpeed-Chat/training/step3_rlhf_finetuning/training_scripts/opt/single_gpu/run_1.3b.sh b/applications/DeepSpeed-Chat/training/step3_rlhf_finetuning/training_scripts/opt/single_gpu/run_1.3b.sh
 index 41caceb..fa1f221 100644
@@ -435,7 +435,7 @@ index 41caceb..fa1f221 100644
     --deepspeed --actor_lora_dim 128 --enable_hybrid_engine --actor_gradient_checkpointing --actor_dropout 0.0 \
 ```
 
-#### 问题
+### 问题
 
 ```shell
 Traceback (most recent call last):
@@ -476,3 +476,13 @@ ValueError: This op had not been implemented on NPU backend.
   _warnings.warn(warn_message, ResourceWarning)
 
 ```
+
+
+
+deepspeed --num_gpus 1 main.py \
+   --actor_model_name_or_path $ACTOR_MODEL_PATH --critic_model_name_or_path $CRITIC_MODEL_PATH --data_path /home/wangshuai/datasets/Dahoas/rm-static \
+   --actor_zero_stage $ACTOR_ZERO_STAGE --critic_zero_stage $CRITIC_ZERO_STAGE \
+   --num_padding_at_beginning 1 --gradient_accumulation_steps 2 \
+   --deepspeed --actor_lora_dim 128 --enable_hybrid_engine --actor_gradient_checkpointing --actor_dropout 0.0 \
+   --unsupervised_dataset_name /data/disk3/wangshuai/datasets/wikitext --unsupervised_dataset_config_name wikitext-103-v1 \
+   --output_dir $OUTPUT &> $OUTPUT/training.log
