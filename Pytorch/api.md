@@ -38,3 +38,9 @@ torch.cuda(npu).empty_cache() # 释放缓存分配器中未使用的缓存，字
 torch.cuda(npu).memory_cached() # 查看缓存分配器中占用的显存，字节为单位
 torch.cuda(npu).memory_allocated() # 查看tensors占用的显存，字节为单位
 ```
+
+# load/save
+```
+torch.save(net.state_dict(), './model_with_moe.pt')
+
+```
