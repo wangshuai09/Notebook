@@ -21,10 +21,10 @@ Star数： 4.6k
 开发者数量：47，其中超过百行代码贡献人数为 9
 
 社区代码量贡献
-![Alt text](images/bitsandbytes_1.png)
+![Alt text](https://raw.githubusercontent.com/wangshuai09/blog_img/main/images/bitsandbytes_1.png)
 
 社区commits贡献
-![Alt text](images/bitsandbytes_2.png)
+![Alt text](https://raw.githubusercontent.com/wangshuai09/blog_img/main/images/bitsandbytes_2.png)
 
 #### 社区运作
 通过 github issues/discussions 进行沟通

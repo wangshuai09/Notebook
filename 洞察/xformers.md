@@ -22,10 +22,10 @@ Star数： 6.7k
 开发者数量：68，其中超过百行代码贡献人数为 25
 
 社区代码量贡献
-![Alt text](images/xformers_1.png)
+![Alt text](https://raw.githubusercontent.com/wangshuai09/blog_img/main/images/xformers_1.png)
 
 社区commits贡献
-![Alt text](images/xformers_2.png)
+![Alt text](https://raw.githubusercontent.com/wangshuai09/blog_img/main/images/xformers_2.png)
 
 #### 社区运作
 通过 github issues/discussions进行沟通

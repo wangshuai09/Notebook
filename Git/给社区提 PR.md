@@ -14,7 +14,7 @@ git branch -a # 查看所有分支
 git checkout -b local_dev remote_dev
 ```
 
-#### 合并多个commit
+#### rebase合并多个commit
 
 ```shell
 # 左开右闭，endpoint 时省略默认为 HEAD
