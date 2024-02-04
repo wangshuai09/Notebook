@@ -3,18 +3,18 @@
 ### 简介
 
 ChatGLM 是由[智谱AI](https://www.zhipuai.cn/aboutus)打造的开源、支持中英双语的对话语言模型。根据模型参数量及模型架构的不同，ChatGLM 有不同规格，多种系列的模型。
-[ChatGLM2-6B](https://github.com/THUDM/ChatGLM2-6B) 是 [ChatGLM-6B](https://github.com/THUDM/ChatGLM-6B) 的第二代版本, 本文将进行`ChatGLM2-6B`在NPU上的推理及训练。
-[ChatGLM3](https://github.com/THUDM/ChatGLM3)是`ChatGLM2-6B`的升级版，也已经开源（挖坑，TODO）。
+[ChatGLM2-6B](https://github.com/THUDM/ChatGLM2-6B) 是 [ChatGLM-6B](https://github.com/THUDM/ChatGLM-6B) 的第二代版本, 本文将进行ChatGLM2-6B在NPU上的推理及训练。
+[ChatGLM3](https://github.com/THUDM/ChatGLM3) 是ChatGLM2-6B的升级版，也已经开源（挖坑，TODO）。
 
 下面将介绍如何使用昇腾运行 ChatGLM, 前提：确保已按照《》完成环境准备工作。
 
 ### ChatGLM2-6B 推理
 
-下面将演示两种使用方式，一种是官方版本，一种是大模型训推一体平台。
+下面将演示两种推理方式，一种是官方版本，另一种是大模型训推一体平台。
 
 #### 官方版本
 
-现在 `ChatGLM2-6B` 模型已经做到了昇腾原生支持，所以直接参考`ChatGLM2-6B`官方教程即可使用起来。首先进行环境安装：
+当前 ChatGLM2-6B 模型已经做到了昇腾原生支持，所以直接参考 ChatGLM2-6B 官方教程即可使用起来。首先进行环境安装：
 
 ```shell
 # 下载脚本
@@ -39,7 +39,7 @@ print(response)
 
 若无法访问 HuggingFace，可以使用国内镜像网站进行模型的下载，并将上述代码中模型路径替换为本地路径。
 
-output:
+Output:
 ```shell
 Loading checkpoint shards: 100%|██████████████████████████████████████████████████████████████████████████████████████████████████████████████| 7/7 [00:29<00:00,  4.15s/it]
 你好👋！我是人工智能助手 ChatGLM2-6B，很高兴见到你，欢迎问我任何问题。
@@ -59,9 +59,9 @@ NPU（神经处理器）和GPU（图形处理器）都是专门为加速深度�
 ```
 -----
 
-除了脚本方式直接推理外，官方还提供了一种界面操作的方式。
+除了脚本方式直接推理外，官方还提供了界面方式。
 
-对于`NPU`的使用，需要修改代码中模型设备类型：
+对于 NPU 的使用，需要修改代码中模型设备类型：
 `model = AutoModel.from_pretrained("THUDM/chatglm2-6b/", trust_remote_code=True, device="npu")`
 同时，由于`CANN`当前在线程间无法共享`context`，需要在本地下载的`ChatGLM2-6B`模型路径下，或者HuggingFace模型缓存路径下增加如下代码（待修复后删除）：
 
@@ -85,8 +85,8 @@ index d3fb395..5343d30 100644
 
 #### 大模型训推一体平台
 
-大模型的训推平台，例如FastChat、FlagAI、DeepSpeedChat等，抽象出大模型的训练、推理逻辑，支持多种多样的大模型，方便开发者的使用。
-当前 `FastChat` 已实现昇腾原生适配, 下面将使用 `FastChat` 进行 `ChatGLM2-6B` 的推理。
+大模型的训推平台，例如 `FastChat、FlagAI、DeepSpeedChat` 等，抽象出大模型的训练、推理逻辑，支持多种多样的大模型，方便开发者的使用。
+当前 FastChat 已实现昇腾原生适配, 下面将使用 FastChat 进行 ChatGLM2-6B 的推理。
 
 `FastChat` 环境安装：
 
