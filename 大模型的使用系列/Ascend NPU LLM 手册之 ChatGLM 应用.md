@@ -1,20 +1,30 @@
-## Ascend NPU LLM 手册之 ChatGLM 应用
+- [简介](#简介)
+- [ChatGLM2-6B 推理](#chatglm2-6b-推理)
+    - [官方版本（脚本）](#官方版本脚本)
+    - [官方版本（交互式界面）](#官方版本交互式界面)
+    - [大模型训推一体平台（脚本）](#大模型训推一体平台脚本)
+    - [大模型训推一体平台（交互式界面）](#大模型训推一体平台交互式界面)
+- [ChatGLM2-6B 训练](#chatglm2-6b-训练)
+- [问题](#问题)
 
 ### 简介
 
-ChatGLM 是由[智谱AI](https://www.zhipuai.cn/aboutus)打造的开源、支持中英双语的对话语言模型。根据模型参数量及模型架构的不同，ChatGLM 有不同规格，多种系列的模型。
-[ChatGLM2-6B](https://github.com/THUDM/ChatGLM2-6B) 是 [ChatGLM-6B](https://github.com/THUDM/ChatGLM-6B) 的第二代版本, 本文将进行ChatGLM2-6B在NPU上的推理及训练。
-[ChatGLM3](https://github.com/THUDM/ChatGLM3) 是ChatGLM2-6B的升级版，也已经开源（挖坑，TODO）。
+ChatGLM 是由[智谱AI](https://www.zhipuai.cn/aboutus)打造的开源、支持中英双语的对话语言模型。根据模型参数量及模型架构的不同，ChatGLM 有不同规格及不同系列的模型。[ChatGLM2-6B](https://github.com/THUDM/ChatGLM2-6B) 是 [ChatGLM-6B](https://github.com/THUDM/ChatGLM-6B) 的第二代版本, 本文将介绍 ChatGLM2-6B 在 NPU 上的推理及训练。
+[ChatGLM3](https://github.com/THUDM/ChatGLM3) 是ChatGLM2-6B的升级版，当前也已开源（挖坑）。
 
-下面将介绍如何使用昇腾运行 ChatGLM, 前提：确保已按照《》完成环境准备工作。
+本文并不是 ChatGLM 的原理介绍，而是告诉大家如何使用昇腾进行 ChatGLM 的推理及训练,.
+
+**前提：确保已完成 [Ascend NPU 丹炉搭建](https://zhuanlan.zhihu.com/p/681513155)。**
 
 ### ChatGLM2-6B 推理
 
-下面将演示两种推理方式，一种是官方版本，另一种是大模型训推一体平台。
+下面演示几种推理方式，包括 ChatGLM2-6B 官方版本及大模型训推一体平台，可以脚本方式或交互式界面方式使用。
 
-#### 官方版本
+##### 官方版本（脚本）
 
-当前 ChatGLM2-6B 模型已经做到了昇腾原生支持，所以直接参考 ChatGLM2-6B 官方教程即可使用起来。首先进行环境安装：
+当前 ChatGLM2-6B 模型已做到昇腾原生支持，所以直接参考 ChatGLM2-6B 官方教程即可。
+
+首先进行环境安装：
 
 ```shell
 # 下载脚本
@@ -24,10 +34,11 @@ cd ChatGLM2-6B
 pip install -r requirements.txt
 ```
 
-待安装完成后，脚本推理测试的方法如下：
+之后进行脚本推理：
 
 ```python
 from transformers import AutoTokenizer, AutoModel
+# 若无法访问 HuggingFace，可以使用国内镜像网站进行模型的下载，并将上述代码中模型路径替换为本地路径
 tokenizer = AutoTokenizer.from_pretrained("THUDM/chatglm2-6b", trust_remote_code=True)
 model = AutoModel.from_pretrained("THUDM/chatglm2-6b", trust_remote_code=True, device='npu')
 model = model.eval()
@@ -37,9 +48,8 @@ response, history = model.chat(tokenizer, "NPU和GPU有什么区别", history=hi
 print(response)
 ```
 
-若无法访问 HuggingFace，可以使用国内镜像网站进行模型的下载，并将上述代码中模型路径替换为本地路径。
-
 Output:
+
 ```shell
 Loading checkpoint shards: 100%|██████████████████████████████████████████████████████████████████████████████████████████████████████████████| 7/7 [00:29<00:00,  4.15s/it]
 你好👋！我是人工智能助手 ChatGLM2-6B，很高兴见到你，欢迎问我任何问题。
@@ -57,13 +67,14 @@ NPU（神经处理器）和GPU（图形处理器）都是专门为加速深度�
 
 总结：在深度学习应用中，NPU 和 GPU 都可以用于加速计算。然而，在特定的任务中，NPU 可能具有更高的性能，而在能效比方面，NPU 通常会更具优势。在选择使用哪种处理器时，需要根据具体的任务和需求来综合考虑。
 ```
------
 
-除了脚本方式直接推理外，官方还提供了界面方式。
+##### 官方版本（交互式界面）
 
-对于 NPU 的使用，需要修改代码中模型设备类型：
-`model = AutoModel.from_pretrained("THUDM/chatglm2-6b/", trust_remote_code=True, device="npu")`
-同时，由于`CANN`当前在线程间无法共享`context`，需要在本地下载的`ChatGLM2-6B`模型路径下，或者HuggingFace模型缓存路径下增加如下代码（待修复后删除）：
+除了脚本方式，官方提供了更方便的界面交互方式。
+
+修改代码中模型设备类型：`model = AutoModel.from_pretrained("THUDM/chatglm2-6b/", trust_remote_code=True, device="npu")`。
+
+由于 CANN 当前在线程间无法共享 `context`，需要在本地下载的 ChatGLM2-6B 模型路径下，或者 HuggingFace 缓存 ChatGLM2-6B 模型路径下增加如下代码（待修复后删除）：
 
 ```diff
 diff --git a/modeling_chatglm.py b/modeling_chatglm.py
@@ -79,16 +90,18 @@ index d3fb395..5343d30 100644
          inputs = inputs.to(self.device)
 ```
 
-界面执行的效果：
-【image】
+界面效果：
+
+![Alt text](https://raw.githubusercontent.com/wangshuai09/blog_img/main/images/20240205163404.png)
 
 
-#### 大模型训推一体平台
+##### 大模型训推一体平台（脚本）
 
-大模型的训推平台，例如 `FastChat、FlagAI、DeepSpeedChat` 等，抽象出大模型的训练、推理逻辑，支持多种多样的大模型，方便开发者的使用。
-当前 FastChat 已实现昇腾原生适配, 下面将使用 FastChat 进行 ChatGLM2-6B 的推理。
+大模型训推平台，例如 [FastChat](https://github.com/lm-sys/FastChat)、[FlagAI](https://github.com/FlagAI-Open/FlagAI) 等，抽象出大模型的训练、推理逻辑，支持多种多样的大模型，方便开发者的使用。
 
-`FastChat` 环境安装：
+参考下面步骤，可以使用 FastChat 进行 ChatGLM2-6B 的推理。
+
+FastChat 环境安装：
 
 ```shell
 # 1. 源码安装
@@ -100,10 +113,11 @@ pip3 install -e ".[model_worker,webui]"
 pip3 install "fschat[model_worker,webui]"
 ```
 
-按照如下脚本进行推理：
+推理步骤：
 
 ```shell
-root@ascend-01:/home/downloads# python -m fastchat.serve.cli --model-path /home/models/chatglm2-6b/ --device npu --temperature 1e-6/root/miniconda/envs/model_run/lib/python3.9/site-packages/torch_npu/dynamo/__init__.py:18: UserWarning: Register eager implementation for the 'npu' backend of dynamo, as torch_npu was not compiled with torchair.
+root@ascend-01:/home/downloads# python -m fastchat.serve.cli --model-path /home/models/chatglm2-6b/ --device npu --temperature 1e-6 
+/root/miniconda/envs/model_run/lib/python3.9/site-packages/torch_npu/dynamo/__init__.py:18: UserWarning: Register eager implementation for the 'npu' backend of dynamo, as torch_npu was not compiled with torchair.
 Loading checkpoint shards: 100%|██████████████████████████████████████████████████████████████████████████████████████████████████████████████| 7/7 [00:04<00:00,  1.72it/s]
 问: 你好
 答: 你好👋！我是人工智能助手 ChatGLM2-6B，很高兴见到你，欢迎问我任何问题。
@@ -111,8 +125,9 @@ Loading checkpoint shards: 100%|████████████████
 答: 我是一个人工智能助手 ChatGLM2-6B，由清华大学 KEG 实验室和智谱 AI 公司于2023年共同训练的语言模型训练而成。我的任务是针对用户的问题和要求提供适当的答复和支持。
 ```
 
-或者使用界面方式
-分别在三个shell窗口执行如下命令：
+##### 大模型训推一体平台（交互式界面）
+
+分别于三个 shell 窗口执行如下命令：
 
 ```shell
 python3 -m fastchat.serve.controller
@@ -120,14 +135,15 @@ python3 -m fastchat.serve.model_worker --model-path /home/models/chatglm2-6b/ --
 python3 -m fastchat.serve.gradio_web_server
 ```
 
-之后打开浏览器输入 `http://x.x.x.x:7860/`, x.x.x.x为上述启动服务的机器 ip 地址，结果如下：
-【image】
+之后打开浏览器输入 `http://x.x.x.x:7860/`, x.x.x.x 为启动服务机器 ip 地址，结果如下：
+
+![Alt text](https://raw.githubusercontent.com/wangshuai09/blog_img/main/images/20240205163957.png)
 
 ### ChatGLM2-6B 训练
 
-使用 `FastChat` 进行 `ChatGLM2-6B` 的训练，官方版本暂未尝试。
+使用 FastChat 进行 ChatGLM2-6B 的训练，官方版本暂未尝试。
 
-执行如下脚本即可开始模型的训练，此处数据集使用HuggingFace的中文数据集[FreedomIntelligence/evol-instruct-chinese](https://huggingface.co/datasets/FreedomIntelligence/evol-instruct-chinese), 为加速训练过程，抽出一个子集进行训练：
+执行如下脚本即可开始模型的训练，此处数据集使用 HuggingFace 的中文数据集 [FreedomIntelligence/evol-instruct-chinese](https://huggingface.co/datasets/FreedomIntelligence/evol-instruct-chinese), 为加速训练过程，抽出一个子集进行训练：
 
 ```shell
 cd FastChat
@@ -154,7 +170,8 @@ torchrun --nproc_per_node=2 --master_port=20001 fastchat/train/train.py \
     --padding_side left
 ```
 
-训练过程日志如下：
+训练过程日志：
+
 ```shell
 {'loss': 2.0576, 'learning_rate': 4.9995181012051625e-05, 'epoch': 0.03}
   1%|          | 1/160 [02:51<6:06:55, 138.46s/it]WARNING: tokenization mismatch: 251 vs. 253. #turn = 1. (ignored)
@@ -192,7 +209,8 @@ WARNING: tokenization mismatch: 432 vs. 434. #turn = 1. (ignored)
 {'loss': 0.0079, 'learning_rate': 0.0, 'epoch': 5.0}
 ```
 
-微调后的结果：
+微调后结果：
+
 ```
 问: 生成正式电子邮件的结束语。
 答: [W OpCommand.cpp:117] Warning: [Check][offset] Check input storage_offset[%ld] = 0 failed, result is untrustworthy1 (function operator())
@@ -207,7 +225,8 @@ WARNING: tokenization mismatch: 432 vs. 434. #turn = 1. (ignored)
 这些结束语都表达了一种感激之情，并强调了与收件人的联系和关系。具体使用哪个结束语取决于您与收件人的关系和邮件的主题。在发送电子邮件之前，请确保检查您的格式和文本，以确保邮件准确、清晰和易于理解。
 ```
 
-微调前的结果：
+微调前结果：
+
 ```
 问: 生成正式电子邮件的结束语。
 答: [W OpCommand.cpp:117] Warning: [Check][offset] Check input storage_offset[%ld] = 0 failed, result is untrustworthy1 (function operator())
@@ -222,3 +241,14 @@ WARNING: tokenization mismatch: 432 vs. 434. #turn = 1. (ignored)
 [您的姓名]
 ```
 
+--------
+
+### 问题
+
+问题1：`ImportError: /root/miniconda/envs/torch_npu/bin/../lib/libgomp.so.1: cannot allocate memory in static TLS block`
+
+解决方法：`export LD_PRELOAD=/lib/aarch64-linux-gnu/libgomp.so.1`
+
+问题2：界面方式输入后无反应
+
+解决方法：将 gradio 版本进行降级，`pip install gradio==3.41.0`
