@@ -41,6 +41,7 @@ git rebase --continue
 #### 当 merge 出现冲突
 
 ```shell
+# 方法一
 # 从远程仓库拉取最新代码
 # 此处远程分支可以使用 git remote -v 查看
 git checkout -b fix_conflict origin/main 
@@ -56,4 +57,14 @@ git checkout main
 git merge --no-ff fix_conflict
 # 合并开发分支
 git push 
+
+# 方法二
+# 更新远程更新至 master 分支
+git checkout master
+git pull origin master
+# 切换至工作分支
+git checkout work_branch
+# rebase
+git rebase master
+git push -f
 ```

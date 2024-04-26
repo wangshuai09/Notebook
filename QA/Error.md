@@ -426,3 +426,118 @@ _check_build.cpython-39-aarch64-linux-gnu.so__init__.py               __pycache_
 ```shell
 export LD_PRELOAD=/root/miniconda3/envs/torch_npu/lib/python3.9/site-packages/scikit_learn.libs/libgomp-d22c30c5.so.1.0.0
 ```
+
+
+
+Miniconda3-latest-Linux-aarch64.sh: line 353: /root/miniconda3/conda.exe: cannot execute binary file: Exec format error
+
+ERROR: Unable to find the module utility `modprobe`; please make sure you have the package 'module-init-tools' or 'kmod' installed.  If you do have 'module-init-tools' or 'kmod' installed, then please check that `modprobe` is in your PATH.
+
+apt-get install module-init-tools kmod
+
+requests.exceptions.ConnectionError: (ProtocolError('Connection aborted.', ConnectionResetError(104, 'Connection reset by peer'))
+
+
+# 
+Git error: "Please make sure you have the correct access rights and the repository exists"
+
+for https protocol
+
+git remote set-url origin https://github.com/username/repository.git
+for ssh protocol
+
+git remote set-url origin git@github.com:username/repository.git
+
+#
+AssertionError: Torch not compiled with CUDA enabled
+
+设备号使用 int, 应该使用 "npu:<int>"
+
+#
+ImportError: libGL.so.1: cannot open shared object file: No such file or directory
+
+apt-get update && apt-get install libgl1
+
+#
+RuntimeError: Initialize:torch_npu/csrc/core/npu/sys_ctrl/npu_sys_ctrl.cpp:133 NPU error, error code is 507033
+    [Error]: Failed to start the device. 
+            Rectify the fault based on the error information in the ascend log.
+    EE1001: The argument is invalid.Reason: rtGetDevMsg execute failed, reason=[context pointer null]
+            Solution: 1.Check the input parameter range of the function. 2.Check the function invocation relationship.
+            TraceBack (most recent call last):
+            TsdOpen failed. devId=0, tdt error=34[FUNC:PrintfTsdError][FILE:runtime.cc][LINE:2613]
+            Start aicpu executor failed, retCode=0x7020009 devId=0[FUNC:DeviceRetain][FILE:runtime.cc][LINE:3297]
+            Check param failed, dev can not be NULL![FUNC:PrimaryContextRetain][FILE:runtime.cc][LINE:3097]
+            Check param failed, ctx can not be NULL![FUNC:PrimaryContextRetain][FILE:runtime.cc][LINE:3124]
+            Check param failed, context can not be null.[FUNC:NewDevice][FILE:api_impl.cc][LINE:2140]
+            New device failed, retCode=0x7010006[FUNC:SetDevice][FILE:api_impl.cc][LINE:2163]
+            rtSetDevice execute failed, reason=[device retain error][FUNC:FuncErrorReason][FILE:error_message_manage.cc][LINE:50]
+            open device 0 failed, runtime result = 507033.[FUNC:ReportCallError][FILE:log_inner.cpp][LINE:161]
+            ctx is NULL![FUNC:GetDevErrMsg][FILE:api_impl.cc][LINE:4620]
+            The argument is invalid.Reason: rtGetDevMsg execute failed, reason=[context pointer null]
+#
+EH9999: Inner Error!
+EH9999  [Init][Env]init env failed![FUNC:ReportInnerError][FILE:log_inner.cpp][LINE:145]
+        TraceBack (most recent call last):
+        build op model failed, result = 500001[FUNC:ReportInnerError][FILE:log_inner.cpp][LINE:145]
+
+环境问题
+
+
+
+
+
+
+# 
+from transformers import AutoTokenizer, AutoModel, AutoModelForCausalLM
+
+tokenizer = AutoTokenizer.from_pretrained("/home/wangshuai/models/chatglm2-6b/", trust_remote_code=True)
+model = AutoModel.from_pretrained("/home/wangshuai/models/chatglm2-6b/", trust_remote_code=True, device='npu')
+print(model.device)
+model = model.eval()
+response, history = model.chat(tokenizer, "你好", history=[])
+print(response)
+
+
+tokenizer = AutoTokenizer.from_pretrained("/home/wangshuai/models/Baichuan2-7B-Chat/", trust_remote_code=True)
+model = AutoModelForCausalLM.from_pretrained("/home/wangshuai/models/Baichuan2-7B-Chat", trust_remote_code=True).to("npu")
+print(model.device)
+model = model.eval()
+response = model.chat(tokenizer, [{"role": "user", "content": "你好"}])
+print(response)
+
+tokenizer = AutoTokenizer.from_pretrained("/home/wangshuai/models/Baichuan2-7B-Chat/", trust_remote_code=True)
+model = AutoModelForCausalLM.from_pretrained("/home/wangshuai/models/Baichuan2-7B-Chat", trust_remote_code=True, device='npu')
+print(model.device)
+model = model.eval()
+response = model.chat(tokenizer, [{"role": "user", "content": "似 好"}])
+print(response)
+
+
+npu:0
+你好👋！我是人工智能助手 ChatGLM2-6B，很高兴见到你，欢迎问我任何问题。
+<class 'transformers_modules.Baichuan2-7B-Chat.modeling_baichuan.BaichuanForCausalLM'> {'adapter_kwargs': None}
+npu:0
+你好今天我能为您提供什么帮助？
+<class 'transformers_modules.Baichuan2-7B-Chat.modeling_baichuan.BaichuanForCausalLM'> {'device': 'npu', 'adapter_kwargs': None}
+cpu
+
+
+response = model.chat(tokenizer, [{"role": "user", "content": "你是谁"}])
+
+
+# 
+AttributeError: module 'torch_npu.npu' has no attribute 'mem_get_info'
+
+device_map 不支持 auto
+
+#
+ImportError: libGL.so.1: cannot open shared object file: No such file or directory
+
+#
+The internal ACL of the system is incorrect
+python 环境变量配置问题，打印日志确认
+
+
+# ERROR: Could not build wheels for mpi4py, which is required to install pyproject.toml-based projects
+apt-get install libopenmpi-dev

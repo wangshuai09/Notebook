@@ -47,7 +47,7 @@ print(response)
 response, history = model.chat(tokenizer, "NPU和GPU有什么区别", history=history)
 print(response)
 ```
-
+response = model.chat(tokenizer, [{"role": "user", "content": "你好"}])
 Output:
 
 ```shell
@@ -72,7 +72,7 @@ NPU（神经处理器）和GPU（图形处理器）都是专门为加速深度�
 
 除了脚本方式，官方提供了更方便的界面交互方式。
 
-修改代码中模型设备类型：`model = AutoModel.from_pretrained("THUDM/chatglm2-6b/", trust_remote_code=True, device="npu")`。
+修改 `web_demo.py` 代码中模型设备类型：`model = AutoModel.from_pretrained("THUDM/chatglm2-6b/", trust_remote_code=True, device="npu")`。
 
 由于 CANN 当前在线程间无法共享 `context`，需要在本地下载的 ChatGLM2-6B 模型路径下，或者 HuggingFace 缓存 ChatGLM2-6B 模型路径下增加如下代码（待修复后删除）：
 
@@ -89,6 +89,8 @@ index d3fb395..5343d30 100644
 +        torch.npu.set_device(0)
          inputs = inputs.to(self.device)
 ```
+
+启动命令： `python web_demo.py`
 
 界面效果：
 
