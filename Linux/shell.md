@@ -18,3 +18,5 @@ do
    echo $value
 done
 ```
+
+set -e # 有报错立即退出

@@ -483,12 +483,7 @@ EH9999  [Init][Env]init env failed![FUNC:ReportInnerError][FILE:log_inner.cpp][L
 
 环境问题
 
-
-
-
-
-
-# 
+#
 from transformers import AutoTokenizer, AutoModel, AutoModelForCausalLM
 
 tokenizer = AutoTokenizer.from_pretrained("/home/wangshuai/models/chatglm2-6b/", trust_remote_code=True)
@@ -533,6 +528,7 @@ device_map 不支持 auto
 
 #
 ImportError: libGL.so.1: cannot open shared object file: No such file or directory
+pip install opencv-python-headless
 
 #
 The internal ACL of the system is incorrect

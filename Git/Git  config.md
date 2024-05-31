@@ -28,7 +28,7 @@ git config --global user.name wangshuai09
 git config --global user.email xxx@example.com
 
 # 配置代理
-git config --global http.proxy http://127.0.0.0.1:port
+git config --global http.proxy http://127.0.0.1:port
 git config --global https.proxy https://127.0.0.1:port
 
 # 取消代理

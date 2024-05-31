@@ -11,13 +11,15 @@
 
 ```shell
 git branch -a # 查看所有分支
-git checkout -b local_dev remote_dev
+git remote add upstream url 
+git fetch upstream
+git checkout -b local_dev upstream/dev
 ```
 
 #### rebase合并多个commit
 
 ```shell
-# 左开右闭，endpoint 时省略默认为 HEAD
+# 左开右闭，startpoint 表示你想开始合并的前一个commit, endpoint 时省略默认为 HEAD
 git rebase -i startpoint endpoint
 # 弹出编辑界面
 # 将除第一行 pick 修改为 s
@@ -66,5 +68,15 @@ git pull origin master
 git checkout work_branch
 # rebase
 git rebase master
+# 修改并add后
+git rebase --continue
 git push -f
+```
+
+# 从自己分支提交到别人的分支
+```shell
+git checkout -b local_dev_branch
+git rebase dev_pused_origin_branch
+git remode add upstream http://xxx
+git push upstream local_dev_branch:upstream_branch
 ```
