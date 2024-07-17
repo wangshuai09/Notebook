@@ -10,7 +10,7 @@
     id_ecdsa.pub
     id_ed25519.pub
     # 如果没有ssh key, 则需要执行下行命令并按三次回车
-    ssh -t rsa -C "github账户邮箱"
+    ssh-keygen -t rsa -C "github账户邮箱"
     ```
 2. 添加 ssh key 至 github 账户
     - 将 ssh key 复制到剪切板
