@@ -537,3 +537,7 @@ python 环境变量配置问题，打印日志确认
 
 # ERROR: Could not build wheels for mpi4py, which is required to install pyproject.toml-based projects
 apt-get install libopenmpi-dev
+
+
+# source: not found
+ln -sf /bin/bash /bin/sh
