@@ -25,10 +25,10 @@ AscendCL（Ascend Computing Language）是一套用于在昇腾平台上开发�
     ret = aclrtCreateStream(&stream);
     ```
 3. 单算子调用
-   
+
     对于[《算子清单》](https://www.hiascend.com/document/detail/zh/CANNCommunityEdition/80RC2alpha003/apiref/operatorlist/operatorlist_0000.html)内存在的算子，可以直接调用算子API，否则需要参考[《Ascend C自定义算子开发指南》](https://www.hiascend.com/document/detail/zh/CANNCommunityEdition/80RC2alpha003/devguide/opdevg/ascendcopdevg/atlas_ascendc_10_0001.html)来实现自定义算子的开发。
     1. [单算子API调用](#单算子api调用)
-    
+
     2. AscendC自定义算子开发
 4. 运行管理资源释放
     ```cpp
@@ -39,7 +39,7 @@ AscendCL（Ascend Computing Language）是一套用于在昇腾平台上开发�
     ```cpp
     ret = aclFinalize();
     ```
-   
+
 ### 调用依赖头文件和库说明
 根据需要调用头文件，AscendCL头文件在“CANN软件安装后文件存储路径/include/”目录下，AscendCL库文件在“CANN软件安装后文件存储路径/lib64/”目录下。
 

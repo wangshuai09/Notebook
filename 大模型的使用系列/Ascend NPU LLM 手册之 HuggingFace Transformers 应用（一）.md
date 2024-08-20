@@ -84,13 +84,13 @@ python examples/pytorch/translation/run_translation.py --model_name_or_path goog
 环境变量控制主要是从transformers默认缓存路径搜索已缓存文件，还有一个更灵活的指定本地路径的方式可以使用离线模型文件，这种方式需要提前下好文件，使用时指定文件路径即可，
 提前下载文件的方式有以下三种：
 1. 点击[Model Hub](https://huggingface.co/models)用户界面的⬇图标下载文件
-   
+
    ![](https://raw.githubusercontent.com/wangshuai09/blog_img/main/images/20240606111628.png)
 
    将下载后的所有文件放置一个路径下，例如`./your/path/bigscience_t0`
-   
+
 2. 使用`PreTrainedModel.from_pretrained()`和`PreTrainedModel.save_pretrained()`工作流程
-    
+
     需要联网预先下载模型并保存，
       ```python
       # 下载文件
@@ -101,9 +101,9 @@ python examples/pytorch/translation/run_translation.py --model_name_or_path goog
       >>> tokenizer.save_pretrained("./your/path/bigscience_t0")
       >>> model.save_pretrained("./your/path/bigscience_t0")
       ```
-    
+
 3. 使用代码用huggingface_hub库下载文件
-   
+
    首先,安装`huggingface_hub`库
    ```python
    python -m pip install huggingface_hub
@@ -122,7 +122,7 @@ python examples/pytorch/translation/run_translation.py --model_name_or_path goog
 
 1. 点击 [Hf 镜像网站](https://hf-mirror.com/)⬇图标下载文件
    ![](https://raw.githubusercontent.com/wangshuai09/blog_img/main/images/20240606112516.png)
-   
+
 2. 修改huggingface_hub的镜像源
    首先，安装`huggingface_hub`库
    ```python
@@ -153,7 +153,7 @@ python examples/pytorch/translation/run_translation.py --model_name_or_path goog
 
 模型文件下载好后，使用`from_pretrained`流程进行加载
 ```python
-import torch 
+import torch
 import torch_npu
 from transformers import AutoConfig
 

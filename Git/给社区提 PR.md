@@ -11,7 +11,7 @@
 
 ```shell
 git branch -a # 查看所有分支
-git remote add upstream url 
+git remote add upstream url
 git fetch upstream
 git checkout -b local_dev upstream/dev
 ```
@@ -27,7 +27,7 @@ git rebase -i startpoint endpoint
 # 弹出注释边界界面
 # 除了第一条都删除
 # 提交
-git push -f 
+git push -f
 ```
 
 ##### 当 rebase 出现冲突
@@ -35,7 +35,7 @@ git push -f
 git rebase -i resumeerror: could not apply
 # 修改冲突
 # 解决冲突
-git add file 
+git add file
 # 继续 rebase
 git rebase --continue
 ```
@@ -46,7 +46,7 @@ git rebase --continue
 # 方法一
 # 从远程仓库拉取最新代码
 # 此处远程分支可以使用 git remote -v 查看
-git checkout -b fix_conflict origin/main 
+git checkout -b fix_conflict origin/main
 git pull git@github.com:npu-ci/llm-tool-ci.git main
 # 此处执行完会有冲突
 # 手动解决冲突文件
@@ -58,7 +58,7 @@ git checkout main
 # 将冲突解决分支合并至要开发分支
 git merge --no-ff fix_conflict
 # 合并开发分支
-git push 
+git push
 
 # 方法二
 # 更新远程更新至 master 分支
@@ -79,4 +79,14 @@ git checkout -b local_dev_branch
 git rebase dev_pused_origin_branch
 git remode add upstream http://xxx
 git push upstream local_dev_branch:upstream_branch
+```
+
+# co-authored-by
+```shell
+# 两个回车是必须的
+$ git commit -m "Refactor usability tests.
+>
+>
+Co-authored-by: NAME <NAME@EXAMPLE.COM>
+Co-authored-by: ANOTHER-NAME <ANOTHER-NAME@EXAMPLE.COM>"
 ```

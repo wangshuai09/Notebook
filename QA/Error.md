@@ -11,9 +11,9 @@
 
 
 
-#### 问题：`RuntimeError: isDifferentiableType(variable.scalar_type()) INTERNAL ASSERT FAILED`   
+#### 问题：`RuntimeError: isDifferentiableType(variable.scalar_type()) INTERNAL ASSERT FAILED`
 现象：
-    
+
 ```shell
 Traceback (most recent call last):
     File "/home/wangshuai/downloads/DeepSpeedExamples/training/cifar/cifar10_deepspeed.py", line 358, in <module>
@@ -52,10 +52,10 @@ Traceback (most recent call last):
         gate_output = top1gating(logits, self.capacity_factor if self.training else self.eval_capacity_factor,
     File "/root/miniconda3/envs/torch_npu/lib/python3.9/site-packages/deepspeed/moe/sharded_moe.py", line 277, in top1gating
         dispatch_mask = combine_weights.bool()
-    RuntimeError: isDifferentiableType(variable.scalar_type()) INTERNAL ASSERT FAILED at "/opt/_internal/cpython-3.9.17/lib/python3.9/site-packages/torch/include/torch/csrc/autograd/functions/utils.h":75, please report a bug to PyTorch. 
+    RuntimeError: isDifferentiableType(variable.scalar_type()) INTERNAL ASSERT FAILED at "/opt/_internal/cpython-3.9.17/lib/python3.9/site-packages/torch/include/torch/csrc/autograd/functions/utils.h":75, please report a bug to PyTorch.
 ```
 
-解决方法：bool类型不能有梯度，已反馈定位,临时规避方案为 `with torch.no_grad():`,  [最终解决方案](https://gitee.com/ascend/op-plugin/pulls/884) 
+解决方法：bool类型不能有梯度，已反馈定位,临时规避方案为 `with torch.no_grad():`,  [最终解决方案](https://gitee.com/ascend/op-plugin/pulls/884)
 
 
 -------
@@ -63,7 +63,7 @@ Traceback (most recent call last):
 ####  问题：`RuntimeError: HCCL AllReduce & Reduce: Unsupported data type at::kByte/at::kBool`
 
 现象：
-    
+
 ```shell
 RuntimeError: HCCL AllReduce & Reduce: Unsupported data type at::kByte/at::kBoolTraceback (most recent call last):
 
@@ -151,7 +151,7 @@ index 8c025a1a..815d2c93 100755
 ------
 
 ####  问题：`NotImplementedError: Could not run 'npu::npu_format_cast' with arguments from the 'CPU' backend`
-    
+
 现象：
 
 ```shell
@@ -200,7 +200,7 @@ index 8c025a1a..815d2c93 100755
 #### 问题：`EH9999: Inner Error!`
 
 现象：
-   
+
 ```shell
 Traceback (most recent call last):
 File "/usr/local/Ascend/ascend-toolkit/latest/python/site-packages/te_fusion/parallel_compilation.py", line 1031, in init_multi_process_env
@@ -221,7 +221,7 @@ EH9999  [Init][Env]init env failed![FUNC:ReportInnerError][FILE:log_inner.cpp][L
 
 解决方法：守护进程不能为主进程，规避方案为设置为非守护进程
 
-```diff 
+```diff
 --- /usr/local/Ascend/ascend-toolkit/7.0.RC1/python/site-packages/te_fusion/parallel_compilation.py
 +++ /usr/local/Ascend/ascend-toolkit/7.0.RC1/python/site-packages/te_fusion/parallel_compilation.py
 @@ -602,8 +602,11
@@ -229,10 +229,10 @@ EH9999  [Init][Env]init env failed![FUNC:ReportInnerError][FILE:log_inner.cpp][L
         autotune_dispatcher = None
         if OpCompiler.autotune_compiler is not None:
             autotune_dispatcher = OpCompiler.autotune_compiler.task_dispatcher
-+       ## add 
++       ## add
 +       daemon_status = mp.current_process().daemon
 +       mp.current_process().daemon = False
-    
+
         for idx in range(0, self._worker_num):
 ```
 
@@ -438,7 +438,7 @@ apt-get install module-init-tools kmod
 requests.exceptions.ConnectionError: (ProtocolError('Connection aborted.', ConnectionResetError(104, 'Connection reset by peer'))
 
 
-# 
+#
 Git error: "Please make sure you have the correct access rights and the repository exists"
 
 for https protocol
@@ -460,7 +460,7 @@ apt-get update && apt-get install libgl1
 
 #
 RuntimeError: Initialize:torch_npu/csrc/core/npu/sys_ctrl/npu_sys_ctrl.cpp:133 NPU error, error code is 507033
-    [Error]: Failed to start the device. 
+    [Error]: Failed to start the device.
             Rectify the fault based on the error information in the ascend log.
     EE1001: The argument is invalid.Reason: rtGetDevMsg execute failed, reason=[context pointer null]
             Solution: 1.Check the input parameter range of the function. 2.Check the function invocation relationship.
@@ -521,7 +521,7 @@ cpu
 response = model.chat(tokenizer, [{"role": "user", "content": "你是谁"}])
 
 
-# 
+#
 AttributeError: module 'torch_npu.npu' has no attribute 'mem_get_info'
 
 device_map 不支持 auto
@@ -541,3 +541,7 @@ apt-get install libopenmpi-dev
 
 # source: not found
 ln -sf /bin/bash /bin/sh
+
+# /usr/bin/ld: warning: libascend_hal.so, needed by /usr/local/Ascend/ascend-toolkit/latest/lib64/../lib64/libruntime.so, not found (try using -rpath or -rpath-link)
+find / -name libascend_hal.so
+export LD_LIBRARY=$LD_LIBRARY_PATH:PATH_TO_libascend_hal.so

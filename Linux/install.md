@@ -30,7 +30,7 @@ rm -rf ~/miniconda3/miniconda.sh
 ```shell
 wget https://developer.download.nvidia.com/compute/cuda/11.8.0/local_installers/cuda_11.8.0_520.61.05_linux.run
 sudo sh cuda_11.8.0_520.61.05_linux.run
-echo export PATH=$PATH:/usr/local/cuda-11.8/bin>>~/.bashrc 
+echo export PATH=$PATH:/usr/local/cuda-11.8/bin>>~/.bashrc
 echo export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/cuda-11.8/lib64>>~/.bashrc
 ```
 
@@ -55,17 +55,17 @@ RUN sed -i 's/ports.ubuntu.com/mirrors.aliyun.com/g' /etc/apt/sources.list && \
 apt install iputils-ping
 ```
 
-# vim 
+# vim
 ```shell
-apt-get update 
-apt-get install -y vim 
+apt-get update
+apt-get install -y vim
 ```
 
 
-# Install Accelerate CI 
+# Install Accelerate CI
 ```shell
 apt-get update
-apt-get install -y vim 
+apt-get install -y vim
 pip install pytest transformers evaluate scikit-learn timm black -i https://pypi.tuna.tsinghua.edu.cn/simple
 export LD_PRELOAD=/root/miniconda3/envs/torch_npu/lib/python3.9/site-packages/scikit_learn.libs/libgomp-d22c30c5.so.1.0.0
 ```
@@ -91,3 +91,19 @@ export PATH=/opt/python/pp39-pypy39_pp73/bin/:$PATH
 
 # pip 安装时卡住
 pip install --verbose package_name # 可以显示更多信息
+
+# upgrade gcc/g++
+```shell
+# Add the Ubuntu Toolchain PPA:
+sudo add-apt-repository ppa:ubuntu-toolchain-r/test
+# Update the package index:
+sudo apt update
+# Install GCC 12:
+sudo apt install gcc-12 g++-12
+# Update the default GCC version:
+sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-12 12
+# Update the default G++ version:
+sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-12 12
+# Verify GCC version:
+gcc --version (should be 12.x)
+```
