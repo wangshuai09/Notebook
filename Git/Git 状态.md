@@ -25,7 +25,6 @@ git add file
 git commit -m [message]
 ```
 
-
 #### 查看状态
 `git status`
 `git diff` 比较工作目录和暂存区域快照之间的差异

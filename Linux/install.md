@@ -70,7 +70,6 @@ pip install pytest transformers evaluate scikit-learn timm black -i https://pypi
 export LD_PRELOAD=/root/miniconda3/envs/torch_npu/lib/python3.9/site-packages/scikit_learn.libs/libgomp-d22c30c5.so.1.0.0
 ```
 
-
 # miniconda
 ```shell
 mkdir -p ~/miniconda3
@@ -89,9 +88,6 @@ huggingface-cli download --resume-download --local-dir-use-symlinks False bigsci
 # 多版本python配置
 export PATH=/opt/python/pp39-pypy39_pp73/bin/:$PATH
 
-# pip 安装时卡住
-pip install --verbose package_name # 可以显示更多信息
-
 # upgrade gcc/g++
 ```shell
 # Add the Ubuntu Toolchain PPA:
@@ -106,4 +102,40 @@ sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-12 12
 sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-12 12
 # Verify GCC version:
 gcc --version (should be 12.x)
+```
+
+# mihomo for linux
+```shell
+# 1. goto https://github.com/MetaCubeX/mihomo/releases
+# 2. find version for linux and download, such as mihomo-linux-amd64-go120-v1.18.9.deb
+# 3. install
+dpkg -i mihomo-linux-amd64-go120-v1.18.9.deb
+# 4. config: config.yaml from windows
+cp cofing.yaml /etc/mihomo
+# 5. service
+systemctl enable mihomo
+systemctl start mihomo
+# 6. ubuntu net 配置
+#    Network->Proxy->Manual->Http(s) proxy: 127.0.0.1:7890
+# 7. 监控窗口： https://yacd.metacubex.one/#/
+```
+
+# google chrome 
+```shell
+# 1. download https://www.google.com/chrome
+# 2. install 
+dpkg -i google-chrome-stable_current_amd64.deb
+
+# root 用户点击图标无反应
+sed -i '$s/$/ --no-sandbox/' /usr/bin/google-chrome
+```
+
+# vscode for linux
+```shell
+# 1. download https://code.visualstudio.com/download
+# 2. install
+dpkg -i https://code.visualstudio.com/download
+
+# root 用户点击图标无反应
+sed '$a alias vscode='\''/usr/bin/code --no-sandbox --user-data-dir .'\''' ~/.bashrc
 ```
