@@ -1,5 +1,8 @@
 #### memcpy样例
 ```cpp
+#include <acl/acl.h>
+#include <cstdio>
+
 int main(int argc, char** argv) {
 
     auto ret = aclInit(nullptr);
