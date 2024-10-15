@@ -1,14 +1,16 @@
 ### AscendCL(acl)算子开发指南
 
+#### 概念
+https://www.hiascend.com/doc_center/source/zh/CANNCommunityEdition/80RC3alpha001/devguide/appdevg/aclpythondevg/aclpythondevg_0004.html
+
 #### 简介
 AscendCL（Ascend Computing Language）是一套用于在昇腾平台上开发深度神经网络应用的C语言API库，提供运行资源管理、内存管理、模型加载与执行、算子加载与执行、媒体数据处理等API，能够实现利用昇腾硬件计算资源、在昇腾CANN平台上进行深度学习推理计算、图形图像预处理、单算子加速计算等能力。简单来说，就是统一的API框架，实现对所有资源的调用。
-
 
 <div align=center>
     <img src="https://raw.githubusercontent.com/wangshuai09/blog_img/main/images/20240708173147.png"/>
 </div>
 
-### 算子调用流程
+#### 算子调用流程
 1. AscendCL初始化
     ```cpp
     aclError ret = aclInit(NULL);
@@ -40,11 +42,11 @@ AscendCL（Ascend Computing Language）是一套用于在昇腾平台上开发�
     ret = aclFinalize();
     ```
 
-### 调用依赖头文件和库说明
+#### 调用依赖头文件和库说明
 根据需要调用头文件，AscendCL头文件在“CANN软件安装后文件存储路径/include/”目录下，AscendCL库文件在“CANN软件安装后文件存储路径/lib64/”目录下。
 
 
-### 单算子API调用
+#### 单算子API调用
 <div align=center>
     <img src="https://raw.githubusercontent.com/wangshuai09/blog_img/main/images/20240708190310.png"/>
 </div>
@@ -76,7 +78,8 @@ AscendCL（Ascend Computing Language）是一套用于在昇腾平台上开发�
    aclDestroyTensor(tensor);
    ```
 
-### Ascend C自定义算子开发
-Ascend C 原生支持C\C++规范，具有C\C++原语编程，屏蔽硬件差异，类库API封装，孪生调试等优势，详情参考《》
+#### Add 算子
+https://www.hiascend.com/document/detail/zh/CANNCommunityEdition/80RC3alpha003/apiref/appdevgapi/aclpythondevg_01_0072.html?sub_id=%2Fzh%2FCANNCommunityEdition%2F80RC3alpha003%2Fapiref%2Faolapi%2Fcontext%2FaclnnAdd%26aclnnInplaceAdd.md
 
-### AscendCL
+### Ascend C自定义算子开发(待补充)
+Ascend C 原生支持C\C++规范，具有C\C++原语编程，屏蔽硬件差异，类库API封装，孪生调试等优势，详情参考《》
