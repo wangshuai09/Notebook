@@ -80,6 +80,11 @@ AscendCL（Ascend Computing Language）是一套用于在昇腾平台上开发�
 
 #### Add 算子
 https://www.hiascend.com/document/detail/zh/CANNCommunityEdition/80RC3alpha003/apiref/appdevgapi/aclpythondevg_01_0072.html?sub_id=%2Fzh%2FCANNCommunityEdition%2F80RC3alpha003%2Fapiref%2Faolapi%2Fcontext%2FaclnnAdd%26aclnnInplaceAdd.md
+<div align=center>
+    <img src="https://raw.githubusercontent.com/wangshuai09/blog_img/main/images/20241015180648.png" width="500"/>
+</div>
+
+#### 矩阵乘法算子如何实现？
 
 ### Ascend C自定义算子开发(待补充)
 Ascend C 原生支持C\C++规范，具有C\C++原语编程，屏蔽硬件差异，类库API封装，孪生调试等优势，详情参考《》
