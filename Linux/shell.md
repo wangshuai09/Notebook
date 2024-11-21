@@ -19,8 +19,10 @@ do
 done
 ```
 
+#
 set -e # 有报错立即退出
 
+#
 PATH 是可执行路径
-LD_LIBRARY_PATH 是动态链接库路径
-LIBRARY_PATH 是静态链接库路径
+LD_LIBRARY_PATH 用于程序运行时，当运行一个动态链接库的可执行文件时，系统会在这里路径查找动态库
+LIBRARY_PATH 用于编译时库的查找路径，编译时，编译器会在这个路径查找静态和动态库

@@ -545,3 +545,31 @@ ln -sf /bin/bash /bin/sh
 # /usr/bin/ld: warning: libascend_hal.so, needed by /usr/local/Ascend/ascend-toolkit/latest/lib64/../lib64/libruntime.so, not found (try using -rpath or -rpath-link)
 find / -name libascend_hal.so
 export LD_LIBRARY=$LD_LIBRARY_PATH:PATH_TO_libascend_hal.so
+
+
+# g++: fatal error: Killed signal terminated program cc1plus
+编译过程中内存不足，
+
+# Failed to connect to https://changelogs.ubuntu.com/meta-release-lts. Check your Internet connection or proxy settings
+先尝试网络是否联通，ping google.com
+查看服务器网络是否联通，curl https://changelogs.ubuntu.com/meta-release-lts
+ubuntu的检查版本更新是定时触发，失败信息会缓存在下面的文件中，所以要删掉这个错误信息
+rm -rf /var/lib/ubuntu-release-upgrader/release-upgrade-available
+
+# [ERROR]Dkms install failed, ERROR (dkms apport): binary package for davinci_ascend: 1.0 not found
+安装驱动时报错，内核版本不匹配，使用ubuntu20.04, 5.4.0-26-generic版本
+
+# /tmp/cc2MG2eW.s:53525: Error: unsupported instruction `vpdpbusds'
+vpdpbusds 是 AVX-512 指令集的一部分，它用于整数矩阵乘法累加。这种错误通常出现在编译代码时，表明编译器或汇编器不支持此指令，可能因为以下原因之一：
+汇编器版本过旧：你使用的 as 版本不支持 AVX-512 指令集。需要升级 GNU Binutils 到支持 AVX-512 的版本。
+目标架构不支持 AVX-512：你正在编译的目标架构不支持 AVX-512 指令集，或者编译器未正确配置为支持这些指令。
+1.[升级gnu binutils](../Linux/install.md/#gnu-binutils-升级)
+as --version 原始版本为2.34,升级为2.38
+
+2.检查编译器选项
+
+# [Build] fatal error: numpy/arrayobject.h: No such file or directory
+apt install python3-numpy
+
+# cannot load library 'libsndfile.so'
+apt-get install libsndfile1

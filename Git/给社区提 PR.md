@@ -30,6 +30,12 @@ git rebase -i startpoint endpoint
 git push -f
 ```
 
+#### rebase master 最新修改
+```shell
+# 提交前rebase 上游仓库 master分支
+git rebase upstream_repo_name/main
+```
+
 ##### 当 rebase 出现冲突
 ```shell
 git rebase -i resumeerror: could not apply

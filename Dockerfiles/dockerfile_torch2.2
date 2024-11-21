@@ -1,0 +1,71 @@
+FROM ubuntu:22.04
+
+# Install Dependencies
+RUN sed -i 's/ports.ubuntu.com/mirrors.aliyun.com/g' /etc/apt/sources.list && \
+    apt update && \
+    DEBIAN_FRONTEND=noninteractive apt install -y \
+    gcc \
+    g++ \
+    make \
+    cmake \
+    zlib1g \
+    zlib1g-dev \
+    openssl \
+    libsqlite3-dev \
+    libssl-dev \
+    libffi-dev \
+    unzip \
+    pciutils \
+    net-tools \
+    libblas-dev \
+    gfortran \
+    libblas3 \
+    libopenblas-dev \
+    git \
+    wget \
+    vim \
+    curl && \
+    rm -rf /var/lib/apt/lists/*
+
+# Install Python
+ENV MINICONDA_FILE=Miniconda3-latest-Linux-aarch64.sh
+ENV MINICONDA_URL=https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-aarch64.sh
+
+RUN wget -O ${MINICONDA_FILE} ${MINICONDA_URL} && \
+    chmod +x ${MINICONDA_FILE} && \
+    bash ${MINICONDA_FILE} -b -p /root/miniconda && \
+    /root/miniconda/bin/conda create --name torch_npu -y python=3.9 && \
+    rm -f ${MINICONDA_FILE}
+
+ENV PATH=/root/miniconda/envs/torch_npu/bin/:${PATH}
+
+# Install Python Packages
+ENV PIP_SOURCE_URL=https://pypi.tuna.tsinghua.edu.cn/simple
+
+RUN pip install pip --no-cache-dir --upgrade -i ${PIP_SOURCE_URL} && \
+    pip install attrs cython numpy decorator sympy cffi pyyaml pathlib2 psutil protobuf scipy requests absl-py -i ${PIP_SOURCE_URL} && \
+    pip install wheel pyyaml typing_extensions expecttest -i ${PIP_SOURCE_URL}
+
+# Install CANN toolkit
+ENV CANN_TOOLKIT_FILE=Ascend-cann-toolkit_8.0.RC3.alpha001_linux-aarch64.run
+ENV CANN_TOOLKIT_URL=https://ascend-repo.obs.cn-east-2.myhuaweicloud.com/Milan-ASL/Milan-ASL V100R001C19SPC802/Ascend-cann-toolkit_8.0.RC3.alpha001_linux-aarch64.run?response-content-type=application/octet-stream
+ENV LD_LIBRARY_PATH=/usr/local/Ascend/driver/lib64/common/:/usr/local/Ascend/driver/lib64/driver/:${LD_LIBRARY_PATH}
+
+RUN curl -fsSL -o ${CANN_TOOLKIT_FILE} ${CANN_TOOLKIT_URL} && \
+    chmod +x ${CANN_TOOLKIT_FILE} && \
+    ./${CANN_TOOLKIT_FILE} --install --quiet && \
+    rm -f ${CANN_TOOLKIT_FILE} && \
+    echo "source /usr/local/Ascend/ascend-toolkit/set_env.sh" >> /root/.bashrc
+
+# Install CANNN Kernels
+ENV CANN_KERNELS_FILE=Ascend-cann-kernels-910b_8.0.RC3.alpha001_linux.run
+ENV CANN_KERNELS_URL=https://ascend-repo.obs.cn-east-2.myhuaweicloud.com/Milan-ASL/Milan-ASL V100R001C19SPC802/Ascend-cann-kernels-910b_8.0.RC3.alpha001_linux.run?response-content-type=application/octet-stream
+RUN wget -U 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_4) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/11.1 Safari/605.1.15' -O ${CANN_KERNELS_FILE} ${CANN_KERNELS_URL} && \
+    chmod +x ${CANN_KERNELS_FILE} && \
+    ./${CANN_KERNELS_FILE} --install --quiet && \
+    rm -f ${CANN_KERNELS_FILE}
+
+# Install Pytorch and Torch_npu
+RUN pip install torch==2.2.0 torchvision==0.17.0 torchaudio==2.2.0 --index-url https://download.pytorch.org/whl/cpu  && \
+    pip install torch-npu==2.2.0 transformers -i ${PIP_SOURCE_URL} && \
+    pip cache purge
