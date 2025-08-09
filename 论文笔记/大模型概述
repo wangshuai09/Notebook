@@ -65,18 +65,210 @@ KM是单变量分析，Chinchill是联合建模，并引入约束C~=6ND
 
 ### 大模型如何处理文本信息
 
-#### BPE（Byte Pair Encoding）算法
-
 https://tiktokenizer.vercel.app/
 
-实现（https://github.com/openai/gpt-2/blob/master/src/encoder.py）
+#### BPE（Byte Pair Encoding）算法
 
-bpe训练阶段：
-1. 全局统计所有文本的字节对频率。
-2. 迭代合并最高频的字节对，生成合并规则（如 ("a", "t") → "at"）。
-3. 将最终合并规则保存到 vocab.bpe 文件，同时保存词汇表encoder.json
+bpe算法最初提出来是用来做文本压缩的，使用一个字典表替换原始文本
 
 ![alt text](./images/image-7.png)
+
+大语言模型的适配版本目标不是最大化的压缩文本，而是将文本转化为tokens
+
+**大模型bpe训练阶段：**
+1. 将字符转化为unicode编码，构建
+1. 全局统计所有文本的字节对频率。
+2. 迭代合并最高频的字节对，生成合并规则（如 ("a", "t") → "at"）。
+3. 更新字节对，重复以上操作
+4. 将最终合并规则保存到 vocab.bpe 文件，同时保存词汇表encoder.json
+
+**代码实现：**
+```c++
+// google sentencepiece bpe算法训练代码
+// https://github.com/google/sentencepiece/blob/master/src/bpe_model_trainer.cc
+util::Status Trainer::Train() {
+  RETURN_IF_ERROR(status());
+
+  CHECK_OR_RETURN(normalizer_spec_.escape_whitespaces());
+  CHECK_EQ_OR_RETURN(TrainerSpec::BPE, trainer_spec_.model_type());
+
+  symbols_.clear();
+  allocated_.clear();
+  symbols_cache_.clear();
+  active_symbols_.clear();
+
+  // 1. 加载数据
+  RETURN_IF_ERROR(LoadSentences());
+
+  if (trainer_spec_.split_by_whitespace()) {
+    // 2. 空格切分
+    SplitSentencesByWhitespace();
+  }
+
+  // Pretokenizer applied only in training time.
+  // Pretokenizer is used as a constraint of piece extractions.
+  const auto *pretokenizer = SentencePieceTrainer::GetPretokenizerForTraining();
+
+  if (pretokenizer || !trainer_spec_.pretokenization_delimiter().empty()) {
+    absl::string_view delimiter = trainer_spec_.pretokenization_delimiter();
+    LOG(INFO) << "Preprocessing with pretokenizer...";
+    // 3. 遍历所有句子
+    for (auto &w : sentences_) {
+      if (pretokenizer) {
+        // 3.1 使用预分词器对每个句子进行预处理
+        w.first = absl::StrJoin(pretokenizer->PreTokenize(w.first),
+                                TrainerInterface::kUPPBoundaryStr);
+      } else if (!delimiter.empty()) {
+        // 3.2 使用自定义分隔符进行预处理
+        w.first = absl::StrReplaceAll(
+            w.first, {{delimiter, TrainerInterface::kUPPBoundaryStr}});
+      }
+    }
+  }
+
+  // Initializes symbols_. symbols_[sid][i] stores an unary symbol.
+  symbols_.resize(sentences_.size());
+  // 4. 遍历所有句子
+  for (size_t i = 0; i < sentences_.size(); ++i) {
+    // 4.1 循环取句子内文本，将文本转化为unicode编码字符
+    for (const char32 c : string_util::UTF8ToUnicodeText(sentences_[i].first)) {
+      symbols_[i].push_back(GetCharSymbol(c));
+    }
+  }
+
+  // Makes all bigram symbols.
+  // 5. 遍历所有的句子
+  for (size_t sid = 0; sid < symbols_.size(); ++sid) {
+    for (size_t i = 1; i < symbols_[sid].size(); ++i) {
+      // 5.1 获取所有的字节对
+      // void Trainer::AddNewPair(int sid, int left, int right) {
+      //  if (left == -1 || right == -1) return;
+      //  auto *symbol = GetPairSymbol(symbols_[sid][left], symbols_[sid][right]);
+      //  if (symbol != nullptr) {
+      //    active_symbols_.insert(symbol);
+      //    symbol->positions.insert(EncodePos(sid, left, right));
+      //  }
+      //}
+      AddNewPair(sid, i - 1, i);
+    }
+  }
+  // 6. 词汇表大小
+  const int vocab_size =
+      trainer_spec_.vocab_size() - meta_pieces_.size() - required_chars_.size();
+  CHECK_GE_OR_RETURN(vocab_size, 0);
+
+  // We may see duplicated pieces that are extracted with different path.
+  // In real segmentation phase, we can consider them as one symbol.
+  // e.g., "aaa" => "aa" + "a" or "a" + "aa".
+  absl::flat_hash_set<std::string> dup;
+
+  // 7. 主循环，循环直到达到期望vocab_size大小
+  // Main loop.
+  CHECK_OR_RETURN(final_pieces_.empty());
+  while (final_pieces_.size() < static_cast<size_t>(vocab_size)) {
+    constexpr int kUpdateActiveSymbolsInteval = 100;
+    if (final_pieces_.size() % kUpdateActiveSymbolsInteval == 0) {
+      UpdateActiveSymbols();
+    }
+
+    // Scanning active symbols, finds the best_symbol with highest freq.
+    // 8. 遍历activate_symbols_, 获取best_symbol，为频率最大的字节对
+    Symbol *best_symbol = nullptr;
+    for (auto &it : active_symbols_) {
+      Symbol *symbol = it;
+      ComputeFreq(symbol);
+      // If the frequency is the same, take shorter symbol.
+      // if the length is the same, use lexicographical comparison
+      if (best_symbol == nullptr ||
+          (symbol->freq > best_symbol->freq ||
+           (symbol->freq == best_symbol->freq &&
+            (symbol->chars.size() < best_symbol->chars.size() ||
+             (symbol->chars.size() == best_symbol->chars.size() &&
+              symbol->ToString() < best_symbol->ToString()))))) {
+        best_symbol = symbol;
+      }
+    }
+
+    if (best_symbol == nullptr) {
+      LOG(WARNING) << "No valid symbol found";
+      break;
+    }
+
+    if (!dup.insert(best_symbol->ToString()).second) {
+      // Removes best_symbol so it is not selected again.
+      symbols_cache_.erase(best_symbol->fp);
+      active_symbols_.erase(best_symbol);
+      continue;
+    }
+
+    // Stores the best_symbol in the final output.
+    // 9. 更新最终词表
+    final_pieces_.emplace_back(best_symbol->ToString(),
+                               -static_cast<float>(final_pieces_.size()));
+
+    if (final_pieces_.size() % 20 == 0) {
+      LOG(INFO) << "Added: freq=" << best_symbol->freq
+                << " size=" << final_pieces_.size()
+                << " all=" << symbols_cache_.size()
+                << " active=" << active_symbols_.size()
+                << " piece=" << best_symbol->ToString();
+    }
+
+    // Add new bigrams which are created after symbol replacement.
+    // We do not need to scan all characters, but scan the neighbors in
+    // best_symbol.
+    // 10. 遍历best_symbol出现的所有位置
+    for (const uint64_t &encoded_pos : best_symbol->positions) {
+      const Position pos = DecodePos(encoded_pos);
+
+      if (symbols_[pos.sid][pos.left] == nullptr) {
+        // left index might be NULL (set in the previous iteration)
+        // when left_symbol == right_symbol.
+        continue;
+      }
+      CHECK_OR_RETURN(symbols_[pos.sid][pos.right]);
+
+      // We have three bigrams [prev, left], [left, right], [right, next],
+      // which are affected with this symbol replacement.
+      const int next = GetNextIndex(pos.sid, pos.right);
+      const int prev = GetPrevIndex(pos.sid, pos.left);
+
+      // Resets the frequencies of bigrams [prev, left] and [right, next].
+      // 11. 更新失效的旧字节对的频率
+      ResetFreq(pos.sid, prev, pos.left, best_symbol);
+      ResetFreq(pos.sid, pos.right, next, best_symbol);
+
+      // Merges two symbols.
+      // 12. 更新字节对： [a,bc,d,e] -> [a, bcd, nullptr, e], 
+      symbols_[pos.sid][pos.left] = best_symbol;
+      symbols_[pos.sid][pos.right] = nullptr;
+
+      // Makes new symbol bigrams [prev, left] and [left, next].
+      // 13. 新增字节对： [a, bcd], [bcd, null]
+      AddNewPair(pos.sid, prev, pos.left);
+      AddNewPair(pos.sid, pos.left, next);
+    }
+
+    // Removes best_symbol so it is not selected again.
+    symbols_cache_.erase(best_symbol->fp);
+    active_symbols_.erase(best_symbol);
+  }  // end of main loop
+
+  // Adds required_chars_
+  // 14. 确保基础字符加入最终词表
+  for (const auto &w : Sorted(required_chars_)) {
+    const Symbol *symbol = GetCharSymbol(w.first);
+    final_pieces_.emplace_back(symbol->ToString(),
+                               -static_cast<float>(final_pieces_.size()));
+  }
+
+  port::STLDeleteElements(&allocated_);
+
+  return Save();
+}
+}  // namespace bpe
+}  // namespace sentencepiece
+```
 
 推理阶段：
 
@@ -92,10 +284,173 @@ gpt2: `r"""'s|'t|'re|'ve|'m|'ll|'d| ?\p{L}+| ?\p{N}+| ?[^\s\p{L}\p{N}]+|\s+(?!\S
 5. 取概率最高的token id
 6. 根据encoder.json转化为token
 
+**代码实现：**
+```c++
+std::vector<std::pair<absl::string_view, int>> Model::SampleEncode(
+    absl::string_view normalized, float alpha) const {
+  if (!status().ok() || normalized.empty()) {
+    return {};
+  }
 
+  struct SymbolPair {
+    int left;     // left index of this pair
+    int right;    // right index of this pair
+    float score;  // score of this pair. large is better.
+    size_t size;  // length of this piece
+  };
 
+  class SymbolPairComparator {
+   public:
+    const bool operator()(SymbolPair *h1, SymbolPair *h2) {
+      return (h1->score < h2->score ||
+              (h1->score == h2->score && h1->left > h2->left));
+    }
+  };
 
+  struct Symbol {
+    int prev;     // prev index of this symbol. -1 for BOS.
+    int next;     // next index of tihs symbol. -1 for EOS.
+    bool freeze;  // this symbol is never be merged.
+    absl::string_view piece;
+  };
 
+  using Agenda = std::priority_queue<SymbolPair *, std::vector<SymbolPair *>,
+                                     SymbolPairComparator>;
+  Agenda agenda;
+  std::vector<Symbol> symbols;
+  symbols.reserve(normalized.size());
 
+  // Reverse merge rules.
+  // key: merged symbol, value: pair of original symbols.
+  absl::flat_hash_map<absl::string_view,
+                      std::pair<absl::string_view, absl::string_view>>
+      rev_merge;
 
+  // Pre-allocates SymbolPair for efficiency.
+  constexpr size_t kPreallocateSymbolPairSize = 256;
+  model::FreeList<SymbolPair> symbol_pair_allocator(kPreallocateSymbolPairSize);
 
+  // Lookup new symbol pair at [left, right] and inserts it to agenda.
+  auto MaybeAddNewSymbolPair = [this, &symbol_pair_allocator, &symbols, &agenda,
+                                &rev_merge](int left, int right) {
+    if (left == -1 || right == -1 || symbols[left].freeze ||
+        symbols[right].freeze)
+      return;
+    const absl::string_view piece(
+        symbols[left].piece.data(),
+        symbols[left].piece.size() + symbols[right].piece.size());
+    const auto it = pieces_.find(piece);
+    if (it == pieces_.end()) {
+      return;
+    }
+    auto *h = symbol_pair_allocator.Allocate();
+    h->left = left;
+    h->right = right;
+    h->score = GetScore(it->second);
+    h->size = piece.size();
+    agenda.push(h);
+
+    // Makes `rev_merge` for resegmentation.
+    if (IsUnusedInlined(it->second)) {
+      rev_merge[piece] =
+          std::make_pair(symbols[left].piece, symbols[right].piece);
+    }
+  };
+
+  // Splits the input into character sequence
+  // 1. 从输入文本提取单词，循环处理，生成所有的symbols
+  // eg: [
+  //  {prev=-1, next=1, piece="h", freeze=false},
+  //  {prev=0, next=2, piece="e", freeze=false},
+  //  {prev=1, next=3, piece="l", freeze=false},
+  //  {prev=2, next=4, piece="l", freeze=false},
+  //  {prev=3, next=-1, piece="o", freeze=false}
+  // ]
+  int index = 0;
+  while (!normalized.empty()) {
+    Symbol s;
+    const int mblen = matcher_->PrefixMatch(normalized, &s.freeze);
+    s.piece = absl::string_view(normalized.data(), mblen);
+    s.prev = index == 0 ? -1 : index - 1;
+    normalized.remove_prefix(mblen);
+    s.next = normalized.empty() ? -1 : index + 1;
+    ++index;
+    symbols.emplace_back(s);
+  }
+
+  if (symbols.empty()) {
+    return {};
+  }
+
+  // Lookup all bigrams.
+  // 2. 遍历所有symbol，初始化字节对优先级队列
+  for (size_t i = 1; i < symbols.size(); ++i) {
+    MaybeAddNewSymbolPair(i - 1, i);
+  }
+
+  // BPE-dropout: https://arxiv.org/pdf/1910.13267.pdf
+  std::mt19937 *rand_gen = nullptr;
+  auto skip_merge = [&]() {
+    if (alpha <= 0.0) return false;
+    if (alpha >= 1.0) return true;
+    if (rand_gen == nullptr) rand_gen = random::GetRandomGenerator();
+    std::uniform_real_distribution<> gen(0.0, 1.0);
+    return gen(*rand_gen) < alpha;
+  };
+
+  // Main loop.
+  // 3. 核心逻辑，按优先级合并字节对
+  while (!agenda.empty()) {
+    // 3.1 获取概率最高的字节对
+    SymbolPair *top = agenda.top();
+    agenda.pop();
+
+    // `top` is no longer available.
+    if (symbols[top->left].piece.empty() || symbols[top->right].piece.empty() ||
+        symbols[top->left].piece.size() + symbols[top->right].piece.size() !=
+            top->size) {
+      continue;
+    }
+
+    // Note that orignal BPE-dropout paper assumes that all merged symbols are
+    // pre computed, but here we randomly skip merge opration inside this loop.
+    // This implemenation is theoretically equivalent to the original one.
+    if (skip_merge()) continue;
+
+    // Replaces symbols with `top` rule.
+    // 3.2 合并字节对，更新symbols
+    // eg: he概率最高，合并he [
+    //  {prev=-1, next=1, piece="h", freeze=false},
+    //  {prev=0, next=2, piece="e", freeze=false},
+    //  {prev=1, next=3, piece="l", freeze=false},
+    //  {prev=2, next=4, piece="l", freeze=false},
+    //  {prev=3, next=-1, piece="o", freeze=false}] 
+    //   ------->
+    //  {prev=-1, next=1, piece="he", freeze=false},
+    //  {prev=0, next=2, piece="", freeze=false},
+    //  {prev=1, next=3, piece="l", freeze=false},
+    //  {prev=2, next=4, piece="l", freeze=false},
+    //  {prev=3, next=-1, piece="o", freeze=false}] 
+    symbols[top->left].piece = absl::string_view(
+        symbols[top->left].piece.data(),
+        symbols[top->left].piece.size() + symbols[top->right].piece.size());
+
+    // Updates prev/next pointers.
+    // 3.2 队列的父子关系
+    symbols[top->left].next = symbols[top->right].next;
+    if (symbols[top->right].next >= 0) {
+      symbols[symbols[top->right].next].prev = top->left;
+    }
+    symbols[top->right].piece = absl::string_view("");
+
+    // Adds new symbol pairs which are newly added after symbol replacement.
+    // 3.3 新增字节对，eg: [xhe, hel]
+    MaybeAddNewSymbolPair(symbols[top->left].prev, top->left);
+    MaybeAddNewSymbolPair(top->left, symbols[top->left].next);
+  }
+```
+
+**解码**
+模型输出为 
+
+### 参考
